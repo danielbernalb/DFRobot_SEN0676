@@ -24,7 +24,7 @@ DFRobot_SEN0676 sensor(Serial2); // or your SoftwareSerial object
 void setup() {
   Serial2.begin(115200, SERIAL_8N1, 17, 16); // RX, TX (ESP32 example)
   sensor.begin();
-  sensor.setInstallationHeight(100); // cm, adjust to your actual installation
+  sensor.setInstallationHeight(1000); // cm, adjust to your actual installation
 }
 
 void loop() {
@@ -39,8 +39,6 @@ void loop() {
 
 - Direct TTL UART connection, no RS485/MAX485.
 - Cross TX/RX: sensor TX -> microcontroller RX, sensor RX -> microcontroller TX.
-- Check the sensor's logic level (3.3V vs 5V) before connecting it directly
-  to an ESP32/ESP8266 (3.3V); use a level shifter if needed.
 - You must call `setInstallationHeight()` before the water level can be
   read correctly (per the sensor's datasheet).
 
