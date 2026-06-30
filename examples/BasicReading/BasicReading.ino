@@ -2,7 +2,7 @@
   BasicReading.ino
   Example usage of the DFRobot_SEN0676 library (80GHz radar sensor, Modbus-RTU)
 
-  Wiring: direct TTL UART, no RS485.
+  Wiring: direct TTL UART.
     - ESP32:   Serial2, RX=17, TX=16
     - ESP8266: SoftwareSerial, RX=13, TX=12
 
@@ -13,7 +13,7 @@
 
 // Installation height in cm (distance from radar to reference bottom)
 // IMPORTANT: adjust this value to your actual installation.
-#define INSTALL_HEIGHT_CM  100
+#define INSTALL_HEIGHT_CM  1000
 
 #if defined(ESP32)
   #define SENSOR_RX_PIN  17
