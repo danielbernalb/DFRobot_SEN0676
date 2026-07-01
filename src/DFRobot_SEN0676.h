@@ -68,7 +68,10 @@ class DFRobot_SEN0676 {
     bool readWaterLevel(uint16_t &valueMm);
 
     // Generic read/write of any register (Modbus function 03 / 06)
-    bool readRegister(uint16_t regAddr, uint16_t &value);
+    // retries: additional retries on timeout/CRC failure. Useful on ESP8266
+    // SoftwareSerial, where WiFi/MQTT activity can occasionally corrupt a
+    // byte mid-frame and cause a transient CRC or timeout failure.
+    bool readRegister(uint16_t regAddr, uint16_t &value, uint8_t retries = 2);
 
     // writeTimeoutMs: timeout specific to this write (longer by default than
     // the read timeout, because some real writes -value different from the

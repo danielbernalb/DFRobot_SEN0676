@@ -44,6 +44,11 @@ void DFRobot_SEN0676::sendFrame(uint8_t *frame, uint8_t len) {
   frame[len]     = crc & 0xFF;        // CRC low
   frame[len + 1] = (crc >> 8) & 0xFF; // CRC high
 
+  // Small bus-settle delay before flushing the RX buffer. This helps avoid
+  // starting a new transaction while a stray/late byte from the previous
+  // one (or WiFi-induced jitter on SoftwareSerial) is still in flight.
+  delay(2);
+
   // Clear any leftover bytes pending in the receive buffer
   while (_serial.available()) _serial.read();
 
@@ -81,7 +86,11 @@ bool DFRobot_SEN0676::checkCRC(uint8_t *data, uint8_t len) {
 }
 
 // ---------- FUNCTION 03: READ A REGISTER ----------
-bool DFRobot_SEN0676::readRegister(uint16_t regAddr, uint16_t &value) {
+// Retries on failure by default. This matters most on ESP8266 SoftwareSerial,
+// where WiFi/MQTT activity can briefly disable interrupts and corrupt or
+// drop a byte mid-frame, causing an occasional CRC mismatch or timeout even
+// though the wiring and timing are otherwise correct.
+bool DFRobot_SEN0676::readRegister(uint16_t regAddr, uint16_t &value, uint8_t retries) {
   uint8_t frame[8];
   frame[0] = _slaveAddr;
   frame[1] = 0x03;                  // Function: read registers
@@ -90,16 +99,23 @@ bool DFRobot_SEN0676::readRegister(uint16_t regAddr, uint16_t &value) {
   frame[4] = 0x00;                  // Number of registers (high)
   frame[5] = 0x01;                  // Number of registers (low) -> 1 register
 
-  sendFrame(frame, 6);
+  for (uint8_t attempt = 0; attempt <= retries; attempt++) {
+    sendFrame(frame, 6);
 
-  uint8_t len = readResponse(_timeoutMs);
-  if (len < 7) return false;                  // Incomplete response
-  if (_rxBuffer[0] != _slaveAddr) return false;
-  if (_rxBuffer[1] != 0x03) return false;      // Could be an error (0x83)
-  if (!checkCRC(_rxBuffer, len)) return false;
+    uint8_t len = readResponse(_timeoutMs);
+    if (len >= 7 &&
+        _rxBuffer[0] == _slaveAddr &&
+        _rxBuffer[1] == 0x03 &&
+        checkCRC(_rxBuffer, len)) {
+      value = (_rxBuffer[3] << 8) | _rxBuffer[4];
+      return true;
+    }
+    // Short pause before retrying, so any in-flight interrupt storm
+    // (WiFi/MQTT) has time to settle before the next attempt.
+    delay(15);
+  }
 
-  value = (_rxBuffer[3] << 8) | _rxBuffer[4];
-  return true;
+  return false;
 }
 
 // ---------- FUNCTION 06: WRITE A REGISTER ----------
