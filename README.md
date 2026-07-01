@@ -38,7 +38,7 @@ void loop() {
 ## Wiring notes
 
 - Direct TTL UART connection.
-- ESP8266 must be 9600 for serial TX/RX, 115200 could generate many errors.
+- ESP8266 must be configured to 9600 baud for TX/RX serial communication; 115200 could result in numerous errors. Use the `speed_change` directory to change the SEN0676 speed to 9600.
 - Cross TX/RX: sensor TX -> microcontroller RX, sensor RX -> microcontroller TX.
 - You must call `setInstallationHeight()` before the water level can be
   read correctly (per the sensor's datasheet).
