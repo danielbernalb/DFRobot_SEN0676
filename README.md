@@ -38,7 +38,7 @@ void loop() {
 ## Wiring notes
 
 - Direct TTL UART connection.
-- ESP8266 must be 9600 for comunnication, 115200 could generate many errors
+- ESP8266 must be 9600 for comunnication, 115200 could generate many errors.
 - Cross TX/RX: sensor TX -> microcontroller RX, sensor RX -> microcontroller TX.
 - You must call `setInstallationHeight()` before the water level can be
   read correctly (per the sensor's datasheet).
